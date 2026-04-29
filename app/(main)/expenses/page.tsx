@@ -6,6 +6,7 @@ import { getVisibleUserIds } from '@/lib/server-finance';
 import { formatLempiras } from '@/lib/finance';
 import { queryRows } from '@/lib/db';
 import { MetricTile, ModuleHeader, StatusPill, WorkPanel } from '@/components/module-ui';
+import { EditExpenseAmount } from './edit-expense-amount';
 
 export default async function ExpensesPage() {
   const session = await getSession();
@@ -98,6 +99,9 @@ export default async function ExpensesPage() {
                       <div className="text-right">
                         <p className="font-medium text-red-600">-{formatLempiras(expense.amount)}</p>
                         <p className="text-xs text-gray-400">{new Date(expense.date).toLocaleDateString()}</p>
+                        <div className="mt-2">
+                          <EditExpenseAmount expenseId={expense.id} currentAmount={expense.amount} label={`${expense.category} · ${expense.type}`} />
+                        </div>
                       </div>
                     </div>
                   ))}
