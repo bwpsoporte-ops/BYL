@@ -41,10 +41,14 @@ export default async function CardsPage() {
   return (
     <div className="space-y-8">
       <ModuleHeader
-        eyebrow="Banca y tarjetas"
-        title="Tarjetas"
-        description="Controla crédito y débito por banco, saldo, límite y disponibilidad sin guardar número completo ni CVV."
-      />
+        eyebrow="Galileo Digital First"
+        title="Tarjetas virtuales"
+        description="Administra tarjetas con una experiencia tipo wallet: emisión digital, control de saldos, disponibilidad y preparación para tokenización segura."
+      >
+        <div className="rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-950">
+          Estado del programa: <span className="font-semibold">Sandbox visual listo</span>
+        </div>
+      </ModuleHeader>
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricTile label="Crédito usado" value={formatLempiras(usedCredit)} tone="amber" detail={`${creditCards.length} tarjetas de crédito`} />
@@ -52,16 +56,40 @@ export default async function CardsPage() {
         <MetricTile label="Débito registradas" value={debitCards.length} tone="green" detail="Cuentas y tarjetas de débito" />
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Wallet readiness</p>
+          <h2 className="mt-2 text-lg font-semibold text-slate-950">Flujo preparado para tokenización</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Cuando Galileo habilite el programa, esta vista puede conectarse a push provisioning para Apple Pay, Google Pay o Samsung Pay.
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Digital cards</p>
+          <h2 className="mt-2 text-lg font-semibold text-slate-950">Vista tipo wallet</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Las tarjetas se muestran como instrumentos digitales: marca, banco, disponibilidad, estado y privacidad.
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Seguridad</p>
+          <h2 className="mt-2 text-lg font-semibold text-slate-950">Sin PAN ni CVV almacenado</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Se conserva una referencia segura para control financiero mientras la tokenización real queda delegada al issuer.
+          </p>
+        </div>
+      </div>
+
       <div className="module-grid">
-        <WorkPanel title="Nueva tarjeta" description="Registra banco, tipo y últimos dígitos para controlar gastos." className="sticky top-8 self-start">
+        <WorkPanel title="Emitir / registrar tarjeta" description="Registra la tarjeta para control financiero y preparación visual de wallet." className="sticky top-8 self-start">
           <CreditCardForm coupleActive={!!session.coupleId} />
         </WorkPanel>
 
         <div>
           <div className="mb-4 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
             <div>
-              <h2 className="text-lg font-semibold text-slate-950">Tarjetas guardadas</h2>
-              <p className="text-sm text-slate-500">Vista visual por banco y disponibilidad.</p>
+              <h2 className="text-lg font-semibold text-slate-950">Wallet de tarjetas</h2>
+              <p className="text-sm text-slate-500">Tarjetas digitales con diseño de pago móvil y estado de provisioning.</p>
             </div>
             <StatusPill tone="blue">{myCards.length} registradas</StatusPill>
           </div>
