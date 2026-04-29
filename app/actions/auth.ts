@@ -3,7 +3,6 @@
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { signToken } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { queryOne } from '@/lib/db';
 
 export async function loginUser(formData: FormData) {
@@ -73,6 +72,13 @@ export async function loginUser(formData: FormData) {
 
 export async function logoutUser() {
   const cookieStore = await cookies();
-  cookieStore.delete('auth_token');
-  redirect('/login');
+  cookieStore.set('auth_token', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    expires: new Date(0),
+    maxAge: 0,
+    path: '/',
+  });
+
+  return { success: true };
 }
