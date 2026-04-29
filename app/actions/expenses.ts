@@ -154,3 +154,102 @@ export async function createExpense(formData: FormData) {
   revalidatePath('/shared');
   return { success: true };
 }
+
+export async function updateExpenseAmount(formData: FormData) {
+  const session = await getSession();
+  if (!session) throw new Error('No session');
+
+  const expenseId = formData.get('expenseId') as string;
+  const amount = formData.get('amount') as string;
+  const numericAmount = Number(amount);
+
+  if (!expenseId || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+    return { error: 'Ingresa un monto válido' };
+  }
+
+  const expense = await queryOne<{
+    id: string;
+    userId: string;
+    amount: string;
+    cardId: string | null;
+    visibility: string;
+    splitType: string | null;
+    splitData: unknown;
+  }>(
+    `select id, user_id as "userId", amount, card_id as "cardId", visibility,
+            split_type as "splitType", split_data as "splitData"
+     from expenses
+     where id = $1 and user_id = $2
+     limit 1`,
+    [expenseId, session.id],
+  );
+
+  if (!expense) {
+    return { error: 'No puedes editar este gasto' };
+  }
+
+  const previousAmount = Number(expense.amount);
+  const difference = numericAmount - previousAmount;
+
+  await query('begin');
+  try {
+    await query(
+      `update expenses
+       set amount = $1, updated_at = now()
+       where id = $2 and user_id = $3`,
+      [numericAmount.toFixed(2), expenseId, session.id],
+    );
+
+    if (expense.cardId && difference !== 0) {
+      await query(
+        `update credit_cards
+         set balance = case
+             when card_type = 'DEBIT' then greatest(0, balance - $1::numeric)
+             else balance + $1::numeric
+           end,
+           updated_at = now()
+         where id = $2`,
+        [difference.toFixed(2), expense.cardId],
+      );
+    }
+
+    if (expense.visibility === 'SHARED') {
+      const balance = await queryOne<{ id: string; owerId: string }>(
+        `select id, ower_id as "owerId"
+         from couple_balances
+         where expense_id = $1 and status = 'PENDING'
+         order by created_at desc
+         limit 1`,
+        [expenseId],
+      );
+
+      if (balance) {
+        const splitData = expense.splitData as { shares?: { owner?: number; partner?: number }; contributions?: { owner?: number; partner?: number } } | null;
+        const shares = splitData?.shares ?? splitShares(expense.splitType || '50/50', 50);
+        const contributions = splitData?.contributions ?? { owner: 0, partner: 0 };
+        const otherIsOwner = balance.owerId !== session.id && session.role !== 'OWNER';
+        const otherShare = otherIsOwner ? shares.owner ?? 50 : shares.partner ?? 50;
+        const otherPaid = otherIsOwner ? contributions.owner ?? 0 : contributions.partner ?? 0;
+        const newDebt = Math.max(0, (numericAmount * otherShare) / 100 - otherPaid);
+
+        await query(
+          `update couple_balances
+           set amount = $1, updated_at = now()
+           where id = $2`,
+          [newDebt.toFixed(2), balance.id],
+        );
+      }
+    }
+
+    await query('commit');
+  } catch (error) {
+    await query('rollback');
+    console.error('Update expense amount error:', error);
+    return { error: 'No se pudo actualizar el gasto' };
+  }
+
+  revalidatePath('/expenses');
+  revalidatePath('/dashboard');
+  revalidatePath('/reports');
+  return { success: true };
+}
