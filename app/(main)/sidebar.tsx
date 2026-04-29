@@ -1,7 +1,6 @@
 'use client';
 
 import { UserPayload } from '@/lib/auth';
-import { logoutUser } from '@/app/actions/auth';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -21,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { LogoutButton } from './logout-button';
 
 export function Sidebar({
   user,
@@ -91,11 +91,7 @@ export function Sidebar({
             <p className="text-xs text-slate-500">{user.name} · {user.role === 'OWNER' ? 'Administrador' : 'Pareja'}</p>
           </div>
           <div className="flex items-center gap-2">
-            <form action={logoutUser}>
-              <Button variant="outline" className="h-9 rounded-md px-3">
-                Salir
-              </Button>
-            </form>
+            <LogoutButton compact />
             <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-md" onClick={() => setMobileOpen((open) => !open)}>
               {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               <span className="sr-only">Menú</span>
@@ -150,11 +146,7 @@ export function Sidebar({
                 <span className="text-xs text-slate-500">{user.role === 'OWNER' ? 'Administrador' : 'Pareja'}</span>
               </div>
             )}
-            <form action={logoutUser}>
-              <Button variant="ghost" className="text-slate-600 hover:text-slate-950">
-                Salir
-              </Button>
-            </form>
+            <LogoutButton />
           </div>
         </div>
       </aside>
